@@ -651,6 +651,19 @@ protected:
 	int ns_vegas_fix_level_;   // see comment at end of tcp-vegas.cc for details of fixes
 };
 
+class ElasticTcpAgent : public virtual TcpAgent{
+public:
+	ElasticTcpAgent();
+	~ElasticTcpAgent();
+	virtual void recv(Packet *pkt, Handler *);
+	virtual void timeout(int tno);
+
+protected:
+	virtual void delay_bind_init_all();
+	virtual void rtt_init();
+	unsigned int baseRTT_,maxRTT_;
+};
+
 // Local Variables:
 // mode:c++
 // c-basic-offset: 8
