@@ -16,6 +16,7 @@
  * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
+#define DEBUG true
 
 #ifndef lint
 static const char rcsid[] =
@@ -184,10 +185,10 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 
 	/* Use first packet to calculate the RTT  --contributed by Allman */
 
-        if (qs_approved_ == 1 && tcph->seqno() > last_ack_)
+	if (qs_approved_ == 1 && tcph->seqno() > last_ack_)
 		endQuickStart();
-        if (qs_requested_ == 1)
-                processQuickStart(pkt);
+	if (qs_requested_ == 1)
+		processQuickStart(pkt);
 	if (++acked_ == 1) 
 		basertt_ = Scheduler::instance().clock() - firstsent_;
 
@@ -202,6 +203,7 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 		if (newreno_changes_ > 0 && new_ssthresh_ < ssthresh_)
 			ssthresh_ = new_ssthresh_;
 	}
+	if(DEBUG) printf("acked val: %d\n",acked_);
 
 #ifdef notdef
 	if (pkt->type_ != PT_ACK) {

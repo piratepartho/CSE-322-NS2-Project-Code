@@ -36,10 +36,10 @@ ElasticTcpAgent::~ElasticTcpAgent() {}
 void
 ElasticTcpAgent::delay_bind_init_all()
 {
-	delay_bind_init_one("bastRTT_");
+	delay_bind_init_one("baseRTT_");
 	delay_bind_init_one("maxRTT_");
 	TcpAgent::delay_bind_init_all();
-        reset();
+    reset();
 }
 
 void 
@@ -54,13 +54,9 @@ VegasTcpAgent::delay_bind_dispatch(const char *varName, const char *localName,
 				   TclObject *tracer)
 {
 	/* init vegas var */
-        if (delay_bind(varName, localName, "v_alpha_", &v_alpha_, tracer)) 
+        if (delay_bind(varName, localName, "baseRTT_", &v_alpha_, tracer)) 
 		return TCL_OK;
-        if (delay_bind(varName, localName, "v_beta_", &v_beta_, tracer)) 
-		return TCL_OK;
-        if (delay_bind(varName, localName, "v_gamma_", &v_gamma_, tracer)) 
-		return TCL_OK;
-        if (delay_bind(varName, localName, "v_rtt_", &v_rtt_, tracer)) 
+        if (delay_bind(varName, localName, "maxRTT_", &v_beta_, tracer)) 
 		return TCL_OK;
         return TcpAgent::delay_bind_dispatch(varName, localName, tracer);
 }

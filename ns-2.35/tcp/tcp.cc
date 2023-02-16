@@ -1633,8 +1633,8 @@ tahoe_action:
 void TcpAgent::endQuickStart()
 {
 	qs_approved_ = 0;
-        qs_cwnd_ = 0;
-        qs_window_ = maxseq_;
+	qs_cwnd_ = 0;
+	qs_window_ = maxseq_;
 	int new_cwnd = maxseq_ - last_ack_;
 	if (new_cwnd > 1 && new_cwnd < cwnd_) {
 	 	cwnd_ = new_cwnd;
@@ -1646,6 +1646,7 @@ void TcpAgent::endQuickStart()
 void TcpAgent::processQuickStart(Packet *pkt)
 {
 	// QuickStart code from Srikanth Sundarrajan.
+	printf("Quick Start Requested.\n");
 	hdr_tcp *tcph = hdr_tcp::access(pkt);
 	hdr_qs *qsh = hdr_qs::access(pkt);
 	double now = Scheduler::instance().clock();
@@ -1655,10 +1656,8 @@ void TcpAgent::processQuickStart(Packet *pkt)
 	//     qsh->ttl(), ttl_diff_, qsh->rate());
 	qs_requested_ = 0;
 	qs_approved_ = 0;
-	if (qsh->flag() == QS_RESPONSE && qsh->ttl() == ttl_diff_ && 
-            qsh->rate() > 0) {
-                app_rate = (int) ((hdr_qs::rate_to_Bps(qsh->rate()) *
-                      (now - tcph->ts_echo())) / (size_ + headersize()));
+	if (qsh->flag() == QS_RESPONSE && qsh->ttl() == ttl_diff_ && qsh->rate() > 0) {
+		app_rate = (int) ((hdr_qs::rate_to_Bps(qsh->rate()) *(now - tcph->ts_echo())) / (size_ + headersize()));
 		if (print_request_) {
 		  double num1 = hdr_qs::rate_to_Bps(qsh->rate());
 		  double time = now - tcph->ts_echo();
@@ -1668,10 +1667,11 @@ void TcpAgent::processQuickStart(Packet *pkt)
 		  printf("Quick Start request, window %d rtt: %4.2f pktsize: %d\n",
 		     app_rate, time, size);
 		}
-                if (app_rate > initial_window()) {
+		if (app_rate > initial_window()) {
+			printf("app_rate: %d\n",app_rate);
 			qs_cwnd_ = app_rate;
-                        qs_approved_ = 1;
-                }
+			qs_approved_ = 1;
+		}
         } else { // Quick Start rejected
 #ifdef QS_DEBUG
                 printf("Quick Start rejected\n");
@@ -1776,6 +1776,7 @@ int TcpAgent::lossQuickStart()
  */
 void TcpAgent::recv(Packet *pkt, Handler*)
 {
+	printf("recv inside\t");
 	hdr_tcp *tcph = hdr_tcp::access(pkt);
 	int valid_ack = 0;
 	if (qs_approved_ == 1 && tcph->seqno() > last_ack_) 
