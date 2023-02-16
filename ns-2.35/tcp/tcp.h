@@ -661,7 +661,9 @@ public:
 protected:
 	virtual void delay_bind_init_all();
 	virtual void rtt_init();
+	virtual void reset();
 	unsigned int baseRTT_,maxRTT_;
+	virtual int delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer);
 };
 
 // Local Variables:

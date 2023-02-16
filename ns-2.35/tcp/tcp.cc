@@ -78,9 +78,13 @@ TcpAgent::TcpAgent()
           use_rtt_(0), qs_requested_(0), qs_approved_(0),
 	  qs_window_(0), qs_cwnd_(0), frto_(0)
 {
+	// * seems that we should use delay_bind_init_one
+	// * bind is coded out here
 #ifdef TCP_DELAY_BIND_ALL
         // defined since Dec 1999.
+	printf("INSIDE TCP ifdef\n");
 #else /* ! TCP_DELAY_BIND_ALL */
+	printf("HERE\n");
 	bind("t_seqno_", &t_seqno_);
 	bind("rtt_", &t_rtt_);
 	bind("srtt_", &t_srtt_);
@@ -110,7 +114,8 @@ TcpAgent::delay_bind_init_all()
 {
 
         // Defaults for bound variables should be set in ns-default.tcl.
-        delay_bind_init_one("window_");
+        printf("Inside delay bind init all\n");
+		delay_bind_init_one("window_");
         delay_bind_init_one("windowInit_");
         delay_bind_init_one("windowInitOption_");
 
@@ -192,6 +197,7 @@ TcpAgent::delay_bind_init_all()
 
 #ifdef TCP_DELAY_BIND_ALL
 	// out because delay-bound tracevars aren't yet supported
+	printf("Second ifdef\n");
         delay_bind_init_one("t_seqno_");
         delay_bind_init_one("rtt_");
         delay_bind_init_one("srtt_");
@@ -1776,7 +1782,7 @@ int TcpAgent::lossQuickStart()
  */
 void TcpAgent::recv(Packet *pkt, Handler*)
 {
-	printf("recv inside\t");
+	// printf("recv inside\t");
 	hdr_tcp *tcph = hdr_tcp::access(pkt);
 	int valid_ack = 0;
 	if (qs_approved_ == 1 && tcph->seqno() > last_ack_) 
@@ -1784,6 +1790,7 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 	if (qs_requested_ == 1)
 		processQuickStart(pkt);
 #ifdef notdef
+	printf("inside notdef 1793");
 	if (pkt->type_ != PT_ACK) {
 		Tcl::instance().evalf("%s error \"received non-ack\"",
 				      name());
