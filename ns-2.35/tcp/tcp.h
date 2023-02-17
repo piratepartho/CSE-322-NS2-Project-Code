@@ -656,7 +656,7 @@ public:
 	ElasticTcpAgent();
 	~ElasticTcpAgent();
 	virtual void recv(Packet *pkt, Handler *);
-	virtual void timeout(int tno);
+	// virtual void timeout(int tno);
 
 protected:
 	virtual void delay_bind_init_all();
@@ -664,7 +664,8 @@ protected:
 	virtual void reset();
 	unsigned int baseRTT_,maxRTT_;
 	virtual int delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer);
-	virtual void recv_newack_helper(Packet* pkt);
+	virtual void recv_newack_helper(Packet*);
+	virtual void opencwnd();
 };
 
 // Local Variables:

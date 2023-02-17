@@ -1126,11 +1126,13 @@ void TcpAgent::opencwnd()
 {
 	double increment;
 	if (cwnd_ < ssthresh_) {
+		printf("Inside slow-start, Current cwnd: %f, ssthresh: %d \n",double(cwnd_), int(ssthresh_));
 		/* slow-start (exponential) */
 		cwnd_ += 1;
 	} else {
 		/* linear */
 		double f;
+		printf("wnd_option_ is : %d\n",wnd_option_);
 		switch (wnd_option_) {
 		case 0:
 			if (++count_ >= cwnd_) {

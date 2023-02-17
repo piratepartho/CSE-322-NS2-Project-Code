@@ -91,12 +91,7 @@ ElasticTcpAgent::recv(Packet *pkt, Handler *)
 {
 	hdr_tcp *tcph = hdr_tcp::access(pkt);
 	int valid_ack = 0;
-	if(qs_approved_ == 1 && tcph->seqno() > last_ack_){
-		endQuickStart();
-	}
-	if(qs_requested_ == 1){
-		processQuickStart(pkt);
-	}
+	
 	if (tcph->ts() < lastreset_) {
 		// Remove packet and do nothing
 		Packet::free(pkt);
@@ -104,21 +99,11 @@ ElasticTcpAgent::recv(Packet *pkt, Handler *)
 	}
 	++nackpack_;
 	ts_peer_ = tcph->ts();
-	int ecnecho = hdr_flags::access(pkt)->ecnecho();
-	if (ecnecho && ecn_)
-		ecn(tcph->seqno());
-	recv_helper(pkt);
-	recv_frto_helper(pkt);
 
 	if(tcph->seqno() > last_ack_){
 		//write code here
 		recv_newack_helper(pkt);
-	}
-	else if(tcph->seqno() == last_ack_){
-		if (hdr_flags::access(pkt)->eln_ && eln_) {
-                        tcp_eln(pkt);
-                        return;
-        }
+	} else if(tcph->seqno() == last_ack_){
 		if (++dupacks_ == numdupacks_ && !noFastRetrans_) {
 			dupack_action();
 		} else if (dupacks_ < numdupacks_ && singledup_ ) {
@@ -126,21 +111,148 @@ ElasticTcpAgent::recv(Packet *pkt, Handler *)
 		}
 	}
 
-	if (QOption_ && EnblRTTCtr_)
-		process_qoption_after_ack (tcph->seqno());
-
 	if (tcph->seqno() >= last_ack_)  
-		// Check if ACK is valid.  Suggestion by Mark Allman. 
 		valid_ack = 1;
 	Packet::free(pkt);
-	/*
-	 * Try to send more data.
-	 */
 	if (valid_ack || aggressive_maxburst_)
 		send_much(0, 0, maxburst_);
 }
 void
 ElasticTcpAgent::recv_newack_helper(Packet* pkt){
 	newack(pkt);
+	if(!ect_){
+		if(!control_increase_ || (control_increase_ && (network_limited() == 1)))
+		{
+			opencwnd();
+		}
+	}
+	if((highest_ack_ >= curseq_ -1) && !closed_){
+		closed_ = 1;
+		finish();
+	}
+}
+
+void
+ElasticTcpAgent::opencwnd()
+{
+	double increment;
+	if (cwnd_ < ssthresh_) {
+		printf("Inside slow-start, Current cwnd: %f, ssthresh: %d \n",double(cwnd_), int(ssthresh_));
+		/* slow-start (exponential) */
+		cwnd_ += 1;
+	} else {
+		/* linear */
+		double f;
+		printf("wnd_option_ is : %d\n",wnd_option_);
+		switch (wnd_option_) {
+		case 0:
+			if (++count_ >= cwnd_) {
+				count_ = 0;
+				++cwnd_;
+			}
+			break;
+
+		case 1:
+			/* This is the standard algorithm. */
+			increment = increase_num_ / cwnd_;
+			if ((last_cwnd_action_ == 0 ||
+			  last_cwnd_action_ == CWND_ACTION_TIMEOUT) 
+			  && max_ssthresh_ > 0) {
+				increment = limited_slow_start(cwnd_,
+				  max_ssthresh_, increment);
+			}
+			cwnd_ += increment;
+			break;
+
+		case 2:
+			/* These are window increase algorithms
+			 * for experimental purposes only. */
+			/* This is the Constant-Rate increase algorithm 
+                         *  from the 1991 paper by S. Floyd on "Connections  
+			 *  with Multiple Congested Gateways". 
+			 *  The window is increased by roughly 
+			 *  wnd_const_*RTT^2 packets per round-trip time.  */
+			f = (t_srtt_ >> T_SRTT_BITS) * tcp_tick_;
+			f *= f;
+			f *= wnd_const_;
+			/* f = wnd_const_ * RTT^2 */
+			f += fcnt_;
+			if (f > cwnd_) {
+				fcnt_ = 0;
+				++cwnd_;
+			} else
+				fcnt_ = f;
+			break;
+
+		case 3:
+			/* The window is increased by roughly 
+			 *  awnd_^2 * wnd_const_ packets per RTT,
+			 *  for awnd_ the average congestion window. */
+			f = awnd_;
+			f *= f;
+			f *= wnd_const_;
+			f += fcnt_;
+			if (f > cwnd_) {
+				fcnt_ = 0;
+				++cwnd_;
+			} else
+				fcnt_ = f;
+			break;
+
+                case 4:
+			/* The window is increased by roughly 
+			 *  awnd_ * wnd_const_ packets per RTT,
+			 *  for awnd_ the average congestion window. */
+                        f = awnd_;
+                        f *= wnd_const_;
+                        f += fcnt_;
+                        if (f > cwnd_) {
+                                fcnt_ = 0;
+                                ++cwnd_;
+                        } else
+                                fcnt_ = f;
+                        break;
+		case 5:
+			/* The window is increased by roughly wnd_const_*RTT 
+			 *  packets per round-trip time, as discussed in
+			 *  the 1992 paper by S. Floyd on "On Traffic 
+			 *  Phase Effects in Packet-Switched Gateways". */
+                        f = (t_srtt_ >> T_SRTT_BITS) * tcp_tick_;
+                        f *= wnd_const_;
+                        f += fcnt_;
+                        if (f > cwnd_) {
+                                fcnt_ = 0;
+                                ++cwnd_;
+                        } else
+                                fcnt_ = f;
+                        break;
+                case 6:
+                        /* binomial controls */ 
+                        cwnd_ += increase_num_ / (cwnd_*pow(cwnd_,k_parameter_));                
+                        break; 
+ 		case 8: 
+			/* high-speed TCP, RFC 3649 */
+			increment = increase_param();
+			if ((last_cwnd_action_ == 0 ||
+			  last_cwnd_action_ == CWND_ACTION_TIMEOUT) 
+			  && max_ssthresh_ > 0) {
+				increment = limited_slow_start(cwnd_,
+				  max_ssthresh_, increment);
+			}
+			cwnd_ += increment;
+                        break;
+		default:
+#ifdef notdef
+			/*XXX*/
+			error("illegal window option %d", wnd_option_);
+#endif
+			abort();
+		}
+	}
+	// if maxcwnd_ is set (nonzero), make it the cwnd limit
+	if (maxcwnd_ && (int(cwnd_) > maxcwnd_))
+		cwnd_ = maxcwnd_;
+
+	return;
 }
 
