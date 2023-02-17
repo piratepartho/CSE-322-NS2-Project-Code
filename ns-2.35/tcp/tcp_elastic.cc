@@ -10,12 +10,13 @@ static const char rcsid[] =
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
-
+#include <math.h>
 #include "ip.h"
 #include "tcp.h"
 #include "flags.h"
 
 #define MIN(x, y) ((x)<(y) ? (x) : (y))
+#define DEBUG true
 
 
 static class ElasticTcpClass : public TclClass {
@@ -143,7 +144,8 @@ ElasticTcpAgent::opencwnd()
 	} else {
 		/* linear */
 		double f;
-		printf("wnd_option_ is : %d\n",wnd_option_);
+		if(DEBUG) printf("wnd_option_ is : %d\n",wnd_option_);
+		if(DEBUG && wnd_option_ > 1) printf("-----------wnd_option_ is not one here-----------\n");
 		switch (wnd_option_) {
 		case 0:
 			if (++count_ >= cwnd_) {
@@ -153,15 +155,10 @@ ElasticTcpAgent::opencwnd()
 			break;
 
 		case 1:
-			/* This is the standard algorithm. */
-			increment = increase_num_ / cwnd_;
-			if ((last_cwnd_action_ == 0 ||
-			  last_cwnd_action_ == CWND_ACTION_TIMEOUT) 
-			  && max_ssthresh_ > 0) {
-				increment = limited_slow_start(cwnd_,
-				  max_ssthresh_, increment);
-			}
-			cwnd_ += increment;
+			if( t_rtt_ < baseRTT_ ) baseRTT_ = t_rtt_;
+			if( t_rtt_ > maxRTT_ ) maxRTT_ = t_rtt_;
+			double wwf = sqrt( ( (double)maxRTT_ / (double)t_rtt_ ) * (double) cwnd_ );
+			cwnd_ += cwnd_ + wwf / cwnd_;
 			break;
 
 		case 2:
