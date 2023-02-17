@@ -176,7 +176,7 @@ class TcpAgent : public Agent {
 public:
 	TcpAgent();
 	virtual ~TcpAgent() {free(tss);}
-        virtual void recv(Packet*, Handler*);
+    virtual void recv(Packet*, Handler*);
 	virtual void timeout(int tno);
 	virtual void timeout_nonrtx(int tno);
 	int command(int argc, const char*const* argv);
@@ -664,6 +664,7 @@ protected:
 	virtual void reset();
 	unsigned int baseRTT_,maxRTT_;
 	virtual int delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer);
+	virtual void recv_newack_helper(Packet* pkt);
 };
 
 // Local Variables:

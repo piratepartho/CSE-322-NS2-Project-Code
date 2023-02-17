@@ -112,6 +112,7 @@ ElasticTcpAgent::recv(Packet *pkt, Handler *)
 
 	if(tcph->seqno() > last_ack_){
 		//write code here
+		recv_newack_helper(pkt);
 	}
 	else if(tcph->seqno() == last_ack_){
 		if (hdr_flags::access(pkt)->eln_ && eln_) {
@@ -138,5 +139,8 @@ ElasticTcpAgent::recv(Packet *pkt, Handler *)
 	if (valid_ack || aggressive_maxburst_)
 		send_much(0, 0, maxburst_);
 }
-
+void
+ElasticTcpAgent::recv_newack_helper(Packet* pkt){
+	newack(pkt);
+}
 
