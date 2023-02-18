@@ -64,7 +64,7 @@ DEFINE	= -DTCP_DELAY_BIND_ALL -DNO_TK -DTCLCL_CLASSINSTVAR  -DNDEBUG -DLINUX_TCP
 INCLUDES = \
 	-I.  \
 	-I. \
-	-I/home/partho/Desktop/ns-allinone-2.35/tclcl-1.20 -I/home/partho/Desktop/ns-allinone-2.35/otcl-1.14 -I/home/partho/Desktop/ns-allinone-2.35/include -I/home/partho/Desktop/ns-allinone-2.35/include -I/home/partho/Desktop/ns-allinone-2.35/include -I/usr/include/pcap \
+	-I/home/partho/Desktop/ns-allinone-2.35/tclcl-1.20 -I/home/partho/Desktop/ns-allinone-2.35/otcl -I/home/partho/Desktop/ns-allinone-2.35/include -I/home/partho/Desktop/ns-allinone-2.35/include -I/home/partho/Desktop/ns-allinone-2.35/include -I/usr/include/pcap \
 	-I./tcp -I./sctp -I./common -I./link -I./queue \
 	-I./adc -I./apps -I./mac -I./mobile -I./trace \
 	-I./routing -I./tools -I./classifier -I./mcast \
@@ -76,7 +76,7 @@ INCLUDES = \
 
 
 LIB	= \
-	-L/home/partho/Desktop/ns-allinone-2.35/tclcl-1.20 -ltclcl -L/home/partho/Desktop/ns-allinone-2.35/otcl-1.14 -lotcl -L/home/partho/Desktop/ns-allinone-2.35/lib -ltk8.5 -L/home/partho/Desktop/ns-allinone-2.35/lib -ltcl8.5 \
+	-L/home/partho/Desktop/ns-allinone-2.35/tclcl-1.20 -ltclcl -L/home/partho/Desktop/ns-allinone-2.35/otcl -lotcl -L/home/partho/Desktop/ns-allinone-2.35/lib -ltk8.5 -L/home/partho/Desktop/ns-allinone-2.35/lib -ltcl8.5 \
 	-lXext -lX11 \
 	 -lnsl -ldl \
 	-lm -lm 
@@ -191,7 +191,7 @@ OBJ_CC = \
 	common/session-rtp.o apps/rtp.o tcp/rtcp.o \
 	common/ivs.o \
 	common/messpass.o common/tp.o common/tpm.o apps/worm.o \
-	tcp/tcp.o tcp/tcp-sink.o tcp/tcp-reno.o \
+	tcp/tcp.o tcp/tcp-sink.o tcp/tcp-reno.o tcp/tcp_elastic.o \
 	tcp/tcp-newreno.o \
 	tcp/tcp-vegas.o tcp/tcp-rbp.o tcp/tcp-full.o tcp/rq.o \
 	baytcp/tcp-full-bay.o baytcp/ftpc.o baytcp/ftps.o \

@@ -52,7 +52,7 @@ prefix  = /usr/local
 BINDEST = /usr/local/bin
 
 CC = g++
-INCLUDE = -I. -I/home/partho/Desktop/ns-allinone-2.35/tclcl-1.20 -I/home/partho/Desktop/ns-allinone-2.35/otcl-1.14 -I/home/partho/Desktop/ns-allinone-2.35/include -I/home/partho/Desktop/ns-allinone-2.35/include -I/home/partho/Desktop/ns-allinone-2.35/include -I/usr/include/pcap
+INCLUDE = -I. -I/home/partho/Desktop/ns-allinone-2.35/tclcl-1.20 -I/home/partho/Desktop/ns-allinone-2.35/otcl -I/home/partho/Desktop/ns-allinone-2.35/include -I/home/partho/Desktop/ns-allinone-2.35/include -I/home/partho/Desktop/ns-allinone-2.35/include -I/usr/include/pcap
 CFLAGS =  -Wall -Wno-write-strings -DCPP_NAMESPACE=std
 LDFLAGS = 
 LIBS = -L/home/partho/Desktop/ns-allinone-2.35/lib -ltcl8.5  -lnsl -ldl -lm 

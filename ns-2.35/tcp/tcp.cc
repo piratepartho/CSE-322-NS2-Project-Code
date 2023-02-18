@@ -47,6 +47,8 @@ static const char rcsid[] =
 #include "basetrace.h"
 #include "hdr_qs.h"
 
+#define DEBUG true
+
 int hdr_tcp::offset_;
 
 static class TCPHeaderClass : public PacketHeaderClass {
@@ -96,14 +98,14 @@ TcpAgent::TcpAgent()
 	bind("cwnd_", &cwnd_);
 	bind("ssthresh_", &ssthresh_);
 	bind("maxseq_", &maxseq_);
-        bind("ndatapack_", &ndatapack_);
-        bind("ndatabytes_", &ndatabytes_);
-        bind("nackpack_", &nackpack_);
-        bind("nrexmit_", &nrexmit_);
-        bind("nrexmitpack_", &nrexmitpack_);
-        bind("nrexmitbytes_", &nrexmitbytes_);
-        bind("necnresponses_", &necnresponses_);
-        bind("ncwndcuts_", &ncwndcuts_);
+	bind("ndatapack_", &ndatapack_);
+	bind("ndatabytes_", &ndatabytes_);
+	bind("nackpack_", &nackpack_);
+	bind("nrexmit_", &nrexmit_);
+	bind("nrexmitpack_", &nrexmitpack_);
+	bind("nrexmitbytes_", &nrexmitbytes_);
+	bind("necnresponses_", &necnresponses_);
+	bind("ncwndcuts_", &ncwndcuts_);
 	bind("ncwndcuts1_", &ncwndcuts1_);
 #endif /* TCP_DELAY_BIND_ALL */
 
@@ -1132,7 +1134,8 @@ void TcpAgent::opencwnd()
 	} else {
 		/* linear */
 		double f;
-		printf("wnd_option_ is : %d\n",wnd_option_);
+		if(DEBUG) printf("wnd_option_ is : %d\n",wnd_option_);
+		if(DEBUG) printf("cwnd_ is: %lf\n", cwnd_.getVal());
 		switch (wnd_option_) {
 		case 0:
 			if (++count_ >= cwnd_) {

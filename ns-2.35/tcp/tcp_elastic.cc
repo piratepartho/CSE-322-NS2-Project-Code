@@ -16,7 +16,7 @@ static const char rcsid[] =
 #include "flags.h"
 
 #define MIN(x, y) ((x)<(y) ? (x) : (y))
-#define DEBUG true
+#define DEBUG false
 
 
 static class ElasticTcpClass : public TclClass {
@@ -70,28 +70,13 @@ ElasticTcpAgent::reset()
 	TcpAgent::reset();
 }
 
-// void
-// VegasTcpAgent::recv_newack_helper(Packet *pkt)
-// {
-// 	newack(pkt);
-// #if 0
-// 	// like TcpAgent::recv_newack_helper, but without this
-// 	if ( !hdr_flags::access(pkt)->ecnecho() || !ecn_ ) {
-// 	        opencwnd();
-// 	}
-// #endif
-// 	/* if the connection is done, call finish() */
-// 	if ((highest_ack_ >= curseq_-1) && !closed_) {
-// 		closed_ = 1;
-// 		finish();
-// 	}
-// }
 
 void
 ElasticTcpAgent::recv(Packet *pkt, Handler *)
 {
 	hdr_tcp *tcph = hdr_tcp::access(pkt);
 	int valid_ack = 0;
+	printf("cwnd_ in recv: %lf\n",cwnd_.getVal());
 	
 	if (tcph->ts() < lastreset_) {
 		// Remove packet and do nothing
@@ -157,8 +142,14 @@ ElasticTcpAgent::opencwnd()
 		case 1:
 			if( t_rtt_ < baseRTT_ ) baseRTT_ = t_rtt_;
 			if( t_rtt_ > maxRTT_ ) maxRTT_ = t_rtt_;
-			double wwf = sqrt( ( (double)maxRTT_ / (double)t_rtt_ ) * (double) cwnd_ );
-			cwnd_ += cwnd_ + wwf / cwnd_;
+			if(DEBUG) printf("RTT: %lf\n", (double) t_rtt_);
+			if(DEBUG) printf("MAX RTT: %lf\n", (double) maxRTT_);
+			if(DEBUG) printf("Base RTT: %lf\n",(double) baseRTT_);
+			printf("cwnd_ before: %lf\n",cwnd_.getVal());
+			// double wwf = sqrt( ( (double)maxRTT_ / (double)t_rtt_ ) * (double) cwnd_ );
+			printf("adding: %lf\n",sqrt(( ( (double)maxRTT_ / (double)t_rtt_ ) * (double) cwnd_ )) / cwnd_);
+			cwnd_ = cwnd_ + ((sqrt(( ( (double)maxRTT_ / (double)t_rtt_ ) * (double) cwnd_ ))) / cwnd_);
+			printf("cwnd_ after: %lf\n",(double)cwnd_);
 			break;
 
 		case 2:
