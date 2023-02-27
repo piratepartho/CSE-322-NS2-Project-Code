@@ -47,7 +47,7 @@ static const char rcsid[] =
 #include "basetrace.h"
 #include "hdr_qs.h"
 
-#define DEBUG true
+#define DEBUG false
 
 int hdr_tcp::offset_;
 
@@ -84,9 +84,9 @@ TcpAgent::TcpAgent()
 	// * bind is coded out here
 #ifdef TCP_DELAY_BIND_ALL
         // defined since Dec 1999.
-	printf("INSIDE TCP ifdef\n");
+	if(DEBUG) printf("INSIDE TCP ifdef\n");
 #else /* ! TCP_DELAY_BIND_ALL */
-	printf("HERE\n");
+	if(DEBUG) printf("HERE\n");
 	bind("t_seqno_", &t_seqno_);
 	bind("rtt_", &t_rtt_);
 	bind("srtt_", &t_srtt_);
@@ -116,7 +116,7 @@ TcpAgent::delay_bind_init_all()
 {
 
         // Defaults for bound variables should be set in ns-default.tcl.
-        printf("Inside delay bind init all\n");
+        if(DEBUG) printf("Inside delay bind init all\n");
 		delay_bind_init_one("window_");
         delay_bind_init_one("windowInit_");
         delay_bind_init_one("windowInitOption_");
@@ -199,7 +199,7 @@ TcpAgent::delay_bind_init_all()
 
 #ifdef TCP_DELAY_BIND_ALL
 	// out because delay-bound tracevars aren't yet supported
-	printf("Second ifdef\n");
+	if(DEBUG) printf("Second ifdef\n");
         delay_bind_init_one("t_seqno_");
         delay_bind_init_one("rtt_");
         delay_bind_init_one("srtt_");
@@ -440,6 +440,7 @@ TcpAgent::set_initial_window()
 void
 TcpAgent::reset_qoption()
 {
+	if(DEBUG) printf("reset_qooption\n");
 	int now = (int)(Scheduler::instance().clock()/tcp_tick_ + 0.5);
 
 	T_start = now ; 
@@ -455,6 +456,7 @@ TcpAgent::reset_qoption()
 void
 TcpAgent::reset()
 {
+	if(DEBUG) printf("TCP.cc reset()\n");
 	rtt_init();
 	rtt_seq_ = -1;
 	/*XXX lookup variables */
@@ -536,6 +538,7 @@ void TcpAgent::rtt_init()
 
 double TcpAgent::rtt_timeout()
 {
+	if(DEBUG) printf("rtt timeout\n");
 	double timeout;
 	if (rfc2988_) {
 	// Correction from Tom Kelly to be RFC2988-compliant, by
@@ -972,12 +975,14 @@ void TcpAgent::send_much(int force, int reason, int maxburst)
  */
 void TcpAgent::reset_rtx_timer(int mild, int backoff)
 {
+	if(DEBUG) printf("reset_Rtx\n");
 	if (backoff)
 		rtt_backoff();
 	set_rtx_timer();
 	if (!mild)
 		t_seqno_ = highest_ack_ + 1;
 	rtt_active_ = 0;
+	
 }
 
 /*
@@ -1128,7 +1133,7 @@ void TcpAgent::opencwnd()
 {
 	double increment;
 	if (cwnd_ < ssthresh_) {
-		printf("Inside slow-start, Current cwnd: %f, ssthresh: %d \n",double(cwnd_), int(ssthresh_));
+		if(DEBUG) printf("Inside slow-start, Current cwnd: %f, ssthresh: %d \n",double(cwnd_), int(ssthresh_));
 		/* slow-start (exponential) */
 		cwnd_ += 1;
 	} else {
@@ -1600,6 +1605,7 @@ TcpAgent::send_one()
 void
 TcpAgent::dupack_action()
 {
+	if(DEBUG) printf("Inside dupack_action()");
 	int recovered = (highest_ack_ > recover_);
 	if (recovered || (!bug_fix_ && !ecn_) || 
 		(bugfix_ss_ && highest_ack_ == 0)) {
@@ -2175,6 +2181,7 @@ TcpAgent::rtt_counting()
 
 void TcpAgent::process_qoption_after_ack (int seqno)
 {
+	if(DEBUG) printf("process QO AFTER\n");
 	if (F_counting == 1) {
 		if (seqno >= W_timed) {
 			RTT_count ++ ; 

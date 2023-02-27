@@ -19643,6 +19643,8 @@ Agent/TCP set EnblRTTCtr_ 0\n\
 Agent/TCP set control_increase_ 0\n\
 \n\
 Agent/TCP set SetCWRonRetransmit_ true ; # added on 2005/06/19.\n\
+Agent/TCP/Elastic set maxRTT_ 0\n\
+Agent/TCP/Elastic set baseRTT_ 0x7fffffff\n\
 \n\
 Agent/TCP set nam_tracevar_ false\n\
 \n\

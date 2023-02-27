@@ -16,7 +16,7 @@
  * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
-#define DEBUG true
+#define DEBUG false
 
 #ifndef lint
 static const char rcsid[] =
@@ -203,7 +203,7 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 		if (newreno_changes_ > 0 && new_ssthresh_ < ssthresh_)
 			ssthresh_ = new_ssthresh_;
 	}
-	if(DEBUG) printf("acked val: %d\n",acked_);
+	// if(DEBUG) printf("acked val: %d\n",acked_);
 
 #ifdef notdef
 	if (pkt->type_ != PT_ACK) {

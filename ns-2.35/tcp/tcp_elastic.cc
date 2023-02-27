@@ -67,6 +67,8 @@ ElasticTcpAgent::reset()
 	baseRTT_ = __INT_MAX__;
 	maxRTT_ = 0;
 
+	if(DEBUG) printf("RTT RESET!!!\n");
+
 	TcpAgent::reset();
 }
 
@@ -76,7 +78,7 @@ ElasticTcpAgent::recv(Packet *pkt, Handler *)
 {
 	hdr_tcp *tcph = hdr_tcp::access(pkt);
 	int valid_ack = 0;
-	printf("cwnd_ in recv: %lf\n",cwnd_.getVal());
+	if(DEBUG) printf("cwnd_ in recv: %lf\n",cwnd_.getVal());
 	
 	if (tcph->ts() < lastreset_) {
 		// Remove packet and do nothing
@@ -123,14 +125,14 @@ ElasticTcpAgent::opencwnd()
 {
 	double increment;
 	if (cwnd_ < ssthresh_) {
-		printf("Inside slow-start, Current cwnd: %f, ssthresh: %d \n",double(cwnd_), int(ssthresh_));
+		if(DEBUG) printf("Inside slow-start, Current cwnd: %f, ssthresh: %d \n",double(cwnd_), int(ssthresh_));
 		/* slow-start (exponential) */
 		cwnd_ += 1;
 	} else {
 		/* linear */
 		double f;
 		if(DEBUG) printf("wnd_option_ is : %d\n",wnd_option_);
-		if(DEBUG && wnd_option_ > 1) printf("-----------wnd_option_ is not one here-----------\n");
+		if(wnd_option_ > 1) printf("-----------wnd_option_ is not one here-----------\n");
 		switch (wnd_option_) {
 		case 0:
 			if (++count_ >= cwnd_) {
@@ -145,11 +147,11 @@ ElasticTcpAgent::opencwnd()
 			if(DEBUG) printf("RTT: %lf\n", (double) t_rtt_);
 			if(DEBUG) printf("MAX RTT: %lf\n", (double) maxRTT_);
 			if(DEBUG) printf("Base RTT: %lf\n",(double) baseRTT_);
-			printf("cwnd_ before: %lf\n",cwnd_.getVal());
-			// double wwf = sqrt( ( (double)maxRTT_ / (double)t_rtt_ ) * (double) cwnd_ );
-			printf("adding: %lf\n",sqrt(( ( (double)maxRTT_ / (double)t_rtt_ ) * (double) cwnd_ )) / cwnd_);
-			cwnd_ = cwnd_ + ((sqrt(( ( (double)maxRTT_ / (double)t_rtt_ ) * (double) cwnd_ ))) / cwnd_);
-			printf("cwnd_ after: %lf\n",(double)cwnd_);
+			if(DEBUG) printf("cwnd_ before: %lf\n",cwnd_.getVal());
+			// TracedDouble wwf = sqrt( ( (double)maxRTT_ / (double)t_rtt_ ) * (double) cwnd_ );
+			// if(DEBUG) printf("adding: %lf\n",sqrt(( ( (double)maxRTT_ / (double)t_rtt_ ) * (double) cwnd_ )) / cwnd_);
+			if(t_rtt_ > 0.000001)cwnd_ = cwnd_ + ((sqrt(( ( (double)maxRTT_ / (double)t_rtt_ ) * (double) cwnd_ ))) / cwnd_);
+			if(DEBUG) printf("cwnd_ after: %lf\n",(double)cwnd_);
 			break;
 
 		case 2:
@@ -244,3 +246,39 @@ ElasticTcpAgent::opencwnd()
 	return;
 }
 
+double ElasticTcpAgent::rtt_timeout()
+{
+	if(DEBUG) printf("rtt timeout\n");
+	double timeout;
+	if (rfc2988_) {
+	// Correction from Tom Kelly to be RFC2988-compliant, by
+	// clamping minrto_ before applying t_backoff_.
+		if (t_rtxcur_ < minrto_ && !use_rtt_)
+			timeout = minrto_ * t_backoff_;
+		else
+			timeout = t_rtxcur_ * t_backoff_;
+	} else {
+		// only of interest for backwards compatibility
+		timeout = t_rtxcur_ * t_backoff_;
+		if (timeout < minrto_)
+			timeout = minrto_;
+	}
+
+	if (timeout > maxrto_)
+		timeout = maxrto_;
+
+        if (timeout < 2.0 * tcp_tick_) {
+		if (timeout < 0) {
+			fprintf(stderr, "TcpAgent: negative RTO!  (%f)\n",
+				timeout);
+			exit(1);
+		} else if (use_rtt_ && timeout < tcp_tick_)
+			timeout = tcp_tick_;
+		else
+			timeout = 2.0 * tcp_tick_;
+	}
+	use_rtt_ = 0;
+	baseRTT_ = __INT_MAX__;
+	maxRTT_ = 0;
+	return (timeout);
+}

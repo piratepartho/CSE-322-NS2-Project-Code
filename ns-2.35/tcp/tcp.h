@@ -666,6 +666,7 @@ protected:
 	virtual int delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer);
 	virtual void recv_newack_helper(Packet*);
 	virtual void opencwnd();
+	virtual double rtt_timeout();
 };
 
 // Local Variables:

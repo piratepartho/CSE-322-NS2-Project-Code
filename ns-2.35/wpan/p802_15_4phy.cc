@@ -208,7 +208,7 @@ void Phy802_15_4::PD_DATA_request(UINT_8 psduLength,Packet *psdu)
 	//check packet length
 	if (psduLength > aMaxPHYPacketSize)
 	{
-		fprintf(stdout,"[%s::%s][%f](node %d) Invalid PSDU/MPDU length: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %u, size = %d\n",__FILE__,__FUNCTION__,CURRENT_TIME,index_,wpan_pName(psdu),p802_15_4macSA(psdu),p802_15_4macDA(psdu),ch->uid(),HDR_LRWPAN(psdu)->uid,ch->size());
+		//fprintf(stdout,"[%s::%s][%f](node %d) Invalid PSDU/MPDU length: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %u, size = %d %d %d\n",__FILE__,__FUNCTION__,CURRENT_TIME,index_,wpan_pName(psdu),p802_15_4macSA(psdu),p802_15_4macDA(psdu),ch->uid(),HDR_LRWPAN(psdu)->uid,ch->size(),psduLength,aMaxPHYPacketSize);
 		Packet::free(psdu);
 		mac->PD_DATA_confirm(p_UNDEFINED);
 		return;

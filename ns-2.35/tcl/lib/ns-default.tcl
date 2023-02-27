@@ -1026,6 +1026,8 @@ Agent/TCP set control_increase_ 0
 
 Agent/TCP set SetCWRonRetransmit_ true ; # added on 2005/06/19.
 				 	 # default changed on 2008/06/05. 
+Agent/TCP/Elastic set maxRTT_ 0
+Agent/TCP/Elastic set baseRTT_ 0x7fffffff
 
 # XXX Generate nam trace or plain old text trace for variables. 
 # When it's true, generate nam trace.
